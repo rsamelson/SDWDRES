@@ -26,13 +26,13 @@ U10N_WD=U10N(jU10j(jUj_WD))
 %    b0 is not so sensitive to b0_fac 
 b0_fac=1.0
 
-% %  smallest wavenumber controls b0
+% %  smallest wavelength controls b0
 % %
-lambda_k0=0.15*U10N;
-% lambda_k0=0.05*(1+0.001*floor(1000*(U10N/3).^2));
-% lambda_k0=0.05*max(ones(1,nU10),0.001*floor(1000*(U10N/3).^2));
-% whos lambda_k0
-% lambda_k=[lambda_k0:0.05:50 51:0.25:100 101:2000];
+lambda_k1=0.15*U10N;
+% lambda_k1=0.05*(1+0.001*floor(1000*(U10N/3).^2));
+% lambda_k1=0.05*max(ones(1,nU10),0.001*floor(1000*(U10N/3).^2));
+% whos lambda_k1
+% lambda_k=[lambda_k1:0.05:50 51:0.25:100 101:2000];
 % % lambda_k=[0.1:0.05:50 51:0.25:100 101:2000];
 % kk=2*pi./lambda_k;
 
@@ -257,7 +257,7 @@ T_Sfd(Hs_fd<=0)=NaN;
 
 
 
-%  smallest wavenumber controls b0
+%  smallest wavelength controls b0
 %
 lambda_k=[0.05:0.01:4.99 5:0.05:50 51:0.25:100 101:2000];
 % lambda_k=[0.1:0.05:50 51:0.25:100 101:2000];
@@ -281,7 +281,7 @@ for jU10=1:nU10
     for jkk=1:length(kk)
         if(lambda_k(jkk) < b0_fac*L_p(jU10))
             Tk_j_plt(jkk,jU10)= 25*sqrt(g)*ustar(jU10)^-2*kk(jkk)^(-3/2);
-            if(lambda_k(jkk) > lambda_k0(jU10))
+            if(lambda_k(jkk) > lambda_k1(jU10))
               Tk_j(jkk,jU10)= 25*sqrt(g)*ustar(jU10)^-2*kk(jkk)^(-3/2);
             % % Tk_j(jkk,jU10)= alpha_P*g ...
             % %     /(2.*gamma_beta3_I3pp1*ustar(jU10)^3*kk(jkk)^2);
@@ -313,13 +313,14 @@ GfUs_j=complex(zeros(nzzk,nU10),zeros(nzzk,nU10));
 Up_j=zeros(nzzk,nU10);
 Px_zint=zeros(1,nU10);
 b0_U10N=zeros(1,nU10);
+Hs_Psi=zeros(1,nU10);
 
 whos Us_j
 
 for jU10=1:nU10
     for jkk=2:length(kk)  
         %  0.5 factor to reduce b0
-        if(  lambda_k(jkk) > lambda_k0(jU10) ...
+        if(  lambda_k(jkk) > lambda_k1(jU10) ...
           && lambda_k(jkk) < b0_fac*L_p(jU10))
             gammak_j=atan(fcor*Tk_j(jkk,jU10));
             Gammakf_j=1./(fcor*Tk_j(jkk,jU10));
@@ -339,6 +340,9 @@ for jU10=1:nU10
             end
             Px_zint(jU10)=Px_zint(jU10)+ ...
                      (kk(jkk-1)-kk(jkk))/(Tk_j(jkk,jU10)*kk_j^2);
+            Hs_Psi(jU10)=Hs_Psi(jU10)+ ...
+                     (kk(jkk-1)-kk(jkk))/(kk_j^2.5);
+            
        end
     end
 
@@ -346,6 +350,7 @@ for jU10=1:nU10
     GfUs_j(:,jU10)=2*betaIp*ustar(jU10)*GfUs_j(:,jU10);
     Up_j(:,jU10)=2*betaIp*ustar(jU10)*Up_j(:,jU10);
     Px_zint(jU10)=betaIp*ustar(jU10)*Px_zint(jU10);
+    Hs_Psi(jU10)=4*sqrt(betaIp*ustar(jU10)*sqrt(1/g)*Hs_Psi(jU10));
 
 end
 
@@ -473,7 +478,7 @@ plot(U10N,TS_fd/(3600),'-b','LineWidth',[2])
 axis([0 20 0 8])
 text(1,7.2,'h','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-ylabel('T_S (hr)','FontSize',fsa)
+ylabel('T_e_q (hr)','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(3,3,9)
@@ -486,7 +491,7 @@ plot(U10N,(180/pi)*atan(fcor*TS_fd),'-b','LineWidth',[2])
 axis([0 20 0 70])
 text(1,063,'i','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-ylabel('arctan(fT_S) (^o)','FontSize',fsa)
+ylabel('arctan(fT_e_q) (^o)','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
 
@@ -502,7 +507,7 @@ axis([0 20 0 2*pi])
 text(0.5,0.9*2*pi,'a','FontSize',fsa)
 ylabel('k (m^-^1)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('log_1_0[T_k (hr)]','FontSize',fsa)
+% title('log_1_0[T_k (hr)]','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(3,2,2+1)
@@ -516,7 +521,7 @@ axis([0 20 0 200])
 text(0.5,180,'c','FontSize',fsa)
 ylabel('\lambda_k (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('log_1_0[T_k (hr)]','FontSize',fsa)
+% title('log_1_0[T_k (hr)]','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(3,2,2*2+1)
@@ -530,7 +535,7 @@ axis([0 20 0 16])
 text(0.5,14.4,'e','FontSize',fsa)
 ylabel('\delta_s (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('log_1_0[T_k (hr)]','FontSize',fsa)
+% title('log_1_0[T_k (hr)]','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
 % figure
@@ -545,7 +550,7 @@ axis([0 20 0 2*pi])
 text(0.5,0.9*2*pi,'b','FontSize',fsa)
 ylabel('k (m^-^1)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('Stokes-drift angle (^o) at 40^o N ','FontSize',fsa)
+% title('Stokes-drift angle (^o) at 40^o N ','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(3,2,2*2)
@@ -559,7 +564,7 @@ axis([0 20 0 200])
 text(0.5,180,'d','FontSize',fsa)
 ylabel('\lambda_k (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('Stokes-drift angle (^o) at 40^o N','FontSize',fsa)
+% title('Stokes-drift angle (^o) at 40^o N','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(3,2,3*2)
@@ -573,7 +578,7 @@ axis([0 20 0 16])
 text(0.5,14.4,'f','FontSize',fsa)
 ylabel('\delta_s (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('Stokes-drift angle (^o) at 40^o N','FontSize',fsa)
+% title('Stokes-drift angle (^o) at 40^o N','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
 
@@ -591,7 +596,7 @@ caxis([0 0.20])
 text(0.5,-0.5,'a','FontSize',fsa)
 ylabel('z (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('|U_S| at 40^o N','FontSize',fsa)
+title('|U_S_d| at 40^o N','FontSize',fsa)
 set(gca,'FontSize',fsa)
 %
 subplot(1,3,2)
@@ -602,7 +607,7 @@ axis([0 20 -10 0])
 text(0.5,-0.5,'b','FontSize',fsa)
 ylabel('z (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('U_S angle (^o) at 40^o N','FontSize',fsa)
+title('U_S_d angle (^o) at 40^o N','FontSize',fsa)
 set(gca,'FontSize',fsa)
 colorbar
 %
@@ -616,7 +621,7 @@ caxis([0 0.20])
 text(0.5,-0.5,'c','FontSize',fsa)
 ylabel('z (m)','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-title('U_p at 40^o N','FontSize',fsa)
+title('U_S at 40^o N','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
 
@@ -637,8 +642,8 @@ for jUj=1:length(jU10j)
     axis([0 xpanelj(jUj) -15 0])
     text(0.9*xpanelj(jUj),-14,jpanelj(jUj),'FontSize',fsa)
     ylabel('z (m)','FontSize',fsa)
-    xlabel('|U_S|','FontSize',fsa)
-    % xlabel('|U_S| at 40^o N','FontSize',fsa)
+    xlabel('|U_S_d|','FontSize',fsa)
+    % xlabel('|U_S_d| at 40^o N','FontSize',fsa)
     plt_name=strcat('U10N=',num2str(U10N(jU10j(jUj))),'m/s')
     title(plt_name,'FontSize',fsa)
     set(gca,'FontSize',fsa)
@@ -659,8 +664,8 @@ for jUj=1:length(jU10j)
     axis([0 50 -15 0])
     text(4,-14,jpanelj(5+jUj),'FontSize',fsa)
     ylabel('z (m)','FontSize',fsa)
-    xlabel('U_S angle (^o)','FontSize',fsa)
-    % xlabel('U_S angle (^o) at 40^o N','FontSize',fsa)
+    xlabel('U_S_d angle (^o)','FontSize',fsa)
+    % xlabel('U_S_d angle (^o) at 40^o N','FontSize',fsa)
     set(gca,'FontSize',fsa)
 
 end
@@ -672,8 +677,8 @@ figure
 plot(U10N,-(180/pi)*angle(Us_j(1,:)),'-b','Linewidth',2)
 axis([0 20 0 12])
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-ylabel('U_S(z=0) angle (^o)','FontSize',fsa)
-title('Surface Stokes-drift angle','FontSize',fsa)
+ylabel('U_S_d(z=0) angle (^o)','FontSize',fsa)
+title('Surface dynamic Stokes drift angle','FontSize',fsa)
 % title('Surface Stokes angle right of downwind in Northern Hemisphere','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
@@ -682,7 +687,7 @@ figure
 plot(2.*rSTzeta,ZZ_ap2_2,'-b','LineWidth',2)
 hold on
 plot(2.*rSTzeta,ZZn_ap2_2,'--b','LineWidth',1)
-xlabel('\Gamma_S T_\zeta = 2 r_S T_\zeta','FontSize',fsa)
+xlabel('\Gamma_e_q T_\zeta = 2 r_S T_\zeta','FontSize',fsa)
 ylabel('2|ZZ|/a_p^2 (-), 2|ZZ(t_n)|/a_p^2 (--)','FontSize',fsa)
 set(gca,'FontSize',fsa)
 
@@ -700,13 +705,45 @@ set(gca,'FontSize',fsa)
 % %
 % subplot(2,1,2)
 % %
-% plot(U10N,lambda_k0,'-b','LineWidth',2)
+% plot(U10N,lambda_k1,'-b','LineWidth',2)
 % axis([0 20 0 3])
 % text(1,2.7,'b','FontSize',fsa)
 % xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
 % ylabel('\lambda_k_0 (m)','FontSize',fsa)
 % set(gca,'FontSize',fsa)
 
+
+figure
+%
+subplot(1,3,1)
+%
+plot(U10N,b0_U10N,'-b','LineWidth',2)
+axis([0 20 0 1])
+text(1,0.9,'a','FontSize',fsa)
+xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
+ylabel('b_0','FontSize',fsa)
+set(gca,'FontSize',fsa)
+%
+subplot(1,3,2)
+%
+plot(U10N,lambda_k1,'-b','LineWidth',2)
+axis([0 20 0 3])
+text(1,2.7,'b','FontSize',fsa)
+xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
+ylabel('\lambda_k_0 (m)','FontSize',fsa)
+set(gca,'FontSize',fsa)
+%
+subplot(1,3,3)
+%
+plot(U10N,Hs_Psi,'-b','LineWidth',2)
+hold on
+plot(U10N,Hs,'--k','LineWidth',1)
+plot(U10N,Hs_fd,'--g','LineWidth',1)
+axis([0 20 0 10])
+text(1,9,'c','FontSize',fsa)
+xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
+ylabel('H_s (m)','FontSize',fsa)
+set(gca,'FontSize',fsa)
 
 figure
 %
@@ -721,14 +758,15 @@ set(gca,'FontSize',fsa)
 %
 subplot(1,2,2)
 %
-plot(U10N,lambda_k0,'-b','LineWidth',2)
+plot(U10N,lambda_k1,'-b','LineWidth',2)
 axis([0 20 0 3])
 text(1,2.7,'b','FontSize',fsa)
 xlabel('U_1_0_N (m s^-^1)','FontSize',fsa)
-ylabel('\lambda_k_0 (m)','FontSize',fsa)
+ylabel('\lambda_k_1 (m)','FontSize',fsa)
+% ylabel('\lambda_k_0 (m)','FontSize',fsa)
 set(gca,'FontSize',fsa)
-
-
+% 
+% 
 % figure(9)
 % 
 % U10N(jU10j(jUj_WD))
@@ -744,7 +782,7 @@ set(gca,'FontSize',fsa)
 %     % axis([max(abs(Us_j(:,jU10j(jUj_WD))))*[-1 1] -3 2]);
 %     % plot(Up_j(:,jU10j(jUj_WD)),log10(abs(zzk)),'--b','Linewidth',1)
 %     % ylabel('z (m)','FontSize',fsa)
-%     % xlabel('|U_S|,u_p,u_B at 40^o N','FontSize',fsa)
+%     % xlabel('|U_S_d|,u_p,u_B at 40^o N','FontSize',fsa)
 %     % plt_name=strcat('U10N=',num2str(U10N(jU10j(jUj_WD))),'m/s')
 %     % title(plt_name,'FontSize',fsa)
 %     % set(gca,'FontSize',fsa)
@@ -769,7 +807,7 @@ set(gca,'FontSize',fsa)
 %     % axis([max(abs(Us_j(:,jU10j(jUj_WD))))*[-1 1] -15 0]);
 %     % plot(Up_j(:,jU10j(jUj_WD)),zzk,'--b','Linewidth',1)
 %     % ylabel('z (m)','FontSize',fsa)
-%     % xlabel('|U_S|,u_p,u_B at 40^o N','FontSize',fsa)
+%     % xlabel('|U_S_d|,u_p,u_B at 40^o N','FontSize',fsa)
 %     % plt_name=strcat('U10N=',num2str(U10N(jU10j(jUj_WD))),'m/s')
 %     % title(plt_name,'FontSize',fsa)
 %     % set(gca,'FontSize',fsa)
@@ -1230,7 +1268,7 @@ for j_mono_spec=1:4
             % title(pltnam,'FontSize',fsa)
             % set(gca,'FontSize',fsa)
             % 
-            figure(8)
+            figure(9)
             %
             subplot(2,4,j_mono_spec)
             %
@@ -1279,7 +1317,7 @@ for j_mono_spec=1:4
 
             if(mod(j_mono_spec,2)==1)
 
-                figure(9)
+                figure(10)
                 %
                 subplot(2,4,j_mono_spec)
                 %
@@ -1297,7 +1335,7 @@ for j_mono_spec=1:4
                 axis([max([abs(Wtot) abs(Uprof_K0)])*[0 1] -2 1.5]);
                 text(0.9*max(abs(Wtot)),1.2, ...
                     jms_lab(j_mono_spec),'FontSize',fsa)
-                xlabel('|U_m|,|W|,|U_S| (m s^-^1)','FontSize',fsa)
+                xlabel('|U_m|,|W|,|U_S_d| (m s^-^1)','FontSize',fsa)
                 ylabel('log_1_0[|z| (m)]','FontSize',fsa)
                 set(gca,'YDir','reverse')
                 pltnam=strcat('U_1_0_N =',num2str(U10N(jU10p)), ...
@@ -1321,7 +1359,7 @@ for j_mono_spec=1:4
                 axis([max(abs([abs(Wtot) abs(Uprof_K0)]))*[0 1] -15 0]);
                 text(0.9*max(abs(Wtot)),-13, ...
                     jms_lab(4+j_mono_spec),'FontSize',fsa)
-                xlabel('|U_m|,|W|,|U_S| (m s^-^1)','FontSize',fsa)
+                xlabel('|U_m|,|W|,|U_S_d| (m s^-^1)','FontSize',fsa)
                 ylabel('z (m)','FontSize',fsa)
                 % set(gca,'YDir','reverse')
                 pltnam=strcat('U_1_0_N =',num2str(U10N(jU10p)), ...
@@ -1343,9 +1381,9 @@ for j_mono_spec=1:4
                 % plot(imag(Uprof_K0),log10_zprof_K0,'--g','LineWidth',1);
                 % plot([0 0],[-6 4],':k')
                 axis([0 abs(deg_min(jUj_WD)) -2 1.5]);
-                text(0.9*abs(deg_min(jUj_WD)),1.2, ...
+                text(0.1*abs(deg_min(jUj_WD)),1.2, ...
                     jms_lab(j_mono_spec+1),'FontSize',fsa)
-                xlabel('angle(U_m,W,U_S) (^o)','FontSize',fsa)
+                xlabel('angle(U_m,W,U_S_d) (^o)','FontSize',fsa)
                 ylabel('log_1_0[|z| (m)]','FontSize',fsa)
                 set(gca,'YDir','reverse')
                 pltnam=strcat('U_1_0_N =',num2str(U10N(jU10p)), ...
@@ -1367,9 +1405,9 @@ for j_mono_spec=1:4
                 % plot(imag(Uprof_K0),zprof_K0,'--g','LineWidth',1);
                 plot([0 0],[-15 0],':k')
                 axis([0 abs(deg_min(jUj_WD)) -15 0]);
-                text(0.9*abs(deg_min(jUj_WD)),-13, ...
+                text(0.1*abs(deg_min(jUj_WD)),-13, ...
                     jms_lab(4+j_mono_spec+1),'FontSize',fsa)
-                xlabel('angle(U_m,W,U_S) (^o)','FontSize',fsa)
+                xlabel('angle(U_m,W,U_S_d) (^o)','FontSize',fsa)
                 ylabel('z (m)','FontSize',fsa)
                 % set(gca,'YDir','reverse')
                 pltnam=strcat('U_1_0_N =',num2str(U10N(jU10p)), ...
@@ -1389,7 +1427,7 @@ for j_mono_spec=1:4
     % end loop mono vs. spec. parameterizations
 end
 
-figure(9)
+figure(10)
 
 ustar_o=ustar_o_U10N(1)
 tau0_o=rho_o*ustar_o^2
@@ -1399,8 +1437,8 @@ tau0_o=rho_o*ustar_o^2
 % b0_ustar_o=sqrt(b0tau0/rho_o)
 % ustar_o=ustar_o-b0_ustar_o
 
-max(lambda_k0)
-min(lambda_k0)
+max(lambda_k1)
+min(lambda_k1)
 
 b0_tauw=tauw_U10N/tau0_o
 b0_tau0=b0*tau0_U10N/tau0_o
